@@ -1,0 +1,9 @@
+{
+  "generator-jscad": {
+    "name": "AtomicPaw",
+    "description": "Jscad prostetic paw for dog, parametric modelling. ",
+    "projectType": "multi-checkbox",
+    "author": "Gino Tubaro",
+    "homepage": "http://limbs.earth"
+  }
+}
