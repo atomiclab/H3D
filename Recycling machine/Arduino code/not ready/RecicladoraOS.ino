@@ -5,22 +5,26 @@
 #include <ArduinoOTA.h>
 #include <WiFiClient.h>//Import WiFi library
 
-#ifndef STASSID
-#define STASSID "wifired"
-#define STAPSK "wifipass"
-#endif
-
-const int led = 2;
-
-
 #include <ESPAsyncWebServer.h>
 #include "LittleFS.h"
 #include <AccelStepper.h>
 
-#define pinStep 2
-#define pinDirection 5
+#ifndef STASSID
+#define STASSID "@TheAtomicLab 3"
+#define STAPSK "superheroes1"
+#endif
+
+#define led 2
+#define ENA 0 //enable or disable stepper
+
+#define PIN_D2 16  //usa el bendito GPIO no las Digitales del arduino ide es el 2 y por eso los vuelvo a declarar 
+#define PIN_D5 14 // es el 5 
+
+#define pinStep PIN_D2 // Motor X en el CNC Shield
+#define pinDirection PIN_D5 // Motor X en el CNC Shield
 
 AccelStepper stepper(1, pinStep, pinDirection);
+
 
 String message = "";
 
@@ -75,29 +79,29 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     data[len] = 0;
     message = (char*)data;
     Serial.println("llega: " + message);
-
+    
     steps = message.substring(0, message.indexOf("&"));
     direction = message.substring(message.indexOf("&")+1, message.length());
     calentar = message.substring(message.indexOf("&")+1, message.length());
     Serial.println("steps: " + steps);
-
+ 
     Serial.println("direction: " + direction);
 
     Serial.println("calentar: " + calentar);
 
 
  if (calentar=="1"){
-      digitalWrite(led,1); //logica del hotend
+     digitalWrite(led,1); //logica del hotend
       temp=temp+1;
-
+              
     }
  if (calentar=="0"){
-     digitalWrite(led,0);
+     digitalWrite(led,0); 
       temp=temp-1;
 
     }
 
-
+    
     notifyClients(direction);
     notifyStop = true;
     if (direction == "CW"){
@@ -138,8 +142,8 @@ void initWebSocket() {
 void setup() {
 
 //pines
- pinMode(led,OUTPUT);
-
+pinMode(led,OUTPUT);
+pinMode(ENA,OUTPUT); 
 
 
   //arduino OTA
@@ -177,12 +181,11 @@ ArduinoOTA.onStart([]() {
     }
   });
   ArduinoOTA.begin();
-
+  
   // Serial port for debugging purposes
-
-
-
   Serial.begin(115200);
+
+   
   initWiFi();
   initWebSocket();
   initFS();
@@ -193,20 +196,27 @@ ArduinoOTA.onStart([]() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(LittleFS, "/index.html", "text/html");
   });
-
+  
   server.serveStatic("/", LittleFS, "/");
 
   server.begin();
+
+
 }
 
 void loop() {
+
+    
   ArduinoOTA.handle();
-  if (stepper.distanceToGo() == 0 && notifyStop == true){
+  digitalWrite(ENA,LOW); //logica del hotend
+  if (stepper.distanceToGo() == 0 && notifyStop == true){  
     direction = "stop";
     notifyClients(direction);
     notifyClients(String(temp));
     notifyStop = false;
   }
   ws.cleanupClients();
-  stepper.run();
+ /*stepper.setSpeed(400);
+ stepper.runSpeed();*/
+stepper.run();
 }
