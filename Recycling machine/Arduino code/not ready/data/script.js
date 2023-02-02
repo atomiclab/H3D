@@ -46,7 +46,9 @@ function submitForm(){
     }
 
     var steps = document.getElementById("steps").value;
-    websocket.send(steps+"&"+direction);
+    var temperatura = document.getElementById("temperatura").value;
+    var calentar="1";
+    websocket.send(steps+"&"+direction+"&"+calentar+"&"+temperatura);
 }
 function largo(){
     rbs = document.querySelectorAll('input[name="direction"]');
@@ -68,7 +70,10 @@ function largo(){
     }
 
     var steps = 1000;
-    websocket.send(steps+"&"+direction);
+    var temperatura = document.getElementById("temperatura").value;
+    var calentar="1";
+    websocket.send(steps+"&"+direction+"&"+calentar+"&"+temperatura);
+
 }
 function pausa(){
     rbs = document.querySelectorAll('input[name="direction"]');
@@ -89,17 +94,20 @@ function pausa(){
         document.getElementById("gear").classList.add("spin-back");
     }
 
-    var steps = 0;
-    websocket.send(steps+"&"+direction);
+    var steps = "0";
+    var temperatura = "0";
+    var calentar="0";
+    websocket.send(steps+"&"+direction+"&"+calentar+"&"+temperatura);
+
 }
 
 function calentar(){
 
     document.getElementById("machine").innerHTML = "Calentando";
     document.getElementById("machine").style.color = "red";
-
+    var temperatura = document.getElementById("temperatura").value;
     var calentar="1";
-    websocket.send(calentar);
+    websocket.send(0+"&"+0+"&"+calentar+"&"+temperatura);
 }
 
 function enfriar(){
@@ -108,12 +116,14 @@ function enfriar(){
     document.getElementById("machine").style.color = "green";
 
     var calentar="0";
-    websocket.send(calentar);
+    var temperatura="0";
+    websocket.send(0+"&"+0+"&"+calentar+"&"+temperatura);
 }
 
 function onMessage(event) {
     console.log(event.data);
     direction = event.data;
+    temperatura=event.data.split("&");
     if (direction=="stop"){
       document.getElementById("motor-state").innerHTML = "motor pausado"
       document.getElementById("motor-state").style.color = "red";
@@ -129,8 +139,15 @@ function onMessage(event) {
             document.getElementById("gear").classList.add("spin-back");
         }
     }
-    if (direction>="20") {
+  /*  if (direction>="20") {
       document.getElementById("temp").innerHTML=direction;
+    }*/
+    if (temperatura[4]>=0) {
+      document.getElementById("temp").innerHTML=temperatura[4];
     }
-
+    if (temperatura[3]>=0) {
+      document.getElementById("desiretemp").innerHTML=temperatura[3];
+    }
 }
+//actualizar estado cada 5 segs
+setInterval(() => websocket.send(""+"&"+""+"&"+""+"&"+""+"&"+"1"), 5000);
